@@ -1,0 +1,38 @@
+vcf: test/test.bcf
+ped: test/test.ped
+
+dbsnp: /exports/igmm/eddie/IGMM-VariantAnalysis/resources/dbSNP151.hg38.vcf.gz
+gnomad:
+    "/exports/igmm/eddie/IGMM-VariantAnalysis/resources/gnomad_r2.1.1/gnomad.exomes.r2.1.1.sites.liftover_grch38.less_info.vcf.gz /exports/igmm/eddie/IGMM-VariantAnalysis/resources/gnomad_r3.0/gnomad.genomes.r3.0.sites.vcf.bgz"
+cadd_dir:
+    /gpfs/igmmfs01/eddie/IGMM-VariantAnalysis/resources/cadd/installation/CADD-scripts/data/prescored/GRCh38_v1.5/no_anno/
+splice_ai_dir:
+  /exports/igmm/eddie/IGMM-VariantAnalysis/resources/SpliceAI_Scores
+filtering:
+  recessive:
+    freq: 0.005
+    gq: 20
+    dp: 5
+    het_vaf: 0.25
+    hom_vaf: 0.9
+    con_het_vaf: 0.1
+    con_hom_vaf: 0.8
+    csq: "default splice_region_variant"
+  dominant:
+    freq: 0.0001
+    gq: 20
+    dp: 5
+    het_vaf: 0.25
+    con_vaf: 0.1
+    max_con_ref_vaf: 0.05
+    csq: "default"
+  de_novo:
+    freq: 0.0001
+    gq: 20
+    dp: 5
+    het_vaf: 0.25
+    con_vaf: 0.1
+    max_con_ref_vaf: 0.05
+    csq: "default splice_region_variant"
+
+extra: ""

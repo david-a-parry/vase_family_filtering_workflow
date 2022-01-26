@@ -1,0 +1,88 @@
+$schema: "http://json-schema.org/draft-04/schema#"
+
+description: snakemake configuration file
+
+type: object
+
+properties:
+type: object
+properties:
+  vcf:
+    type: string
+    description: Variant input in VCF/BCF format.
+  ped:
+    type: string
+    description:
+      PED file indicating familial relationships and affected status in vcf.
+  dbsnp:
+    type: string
+  gnomad:
+    type: string
+  cadd_files:
+    type: string
+  cadd_dir:
+    type: string
+  splice_ai_dir:
+    type: string
+  splice_ai_files:
+    type: string
+  extra:
+    type: string
+  filtering:
+    type: object
+    properties:
+      default: &DEFAULT
+      type: object
+      properties:
+        freq:
+          type: number
+          description:
+            Allele frequency cutoff - filter variants more common than this according to dbSNP and gnomAD annotations
+        het_vaf:
+          type: number
+          description:
+            Variant allele frequency (AD/DP) cutoff for heterozygous variants
+        hom_vaf:
+          type: number
+          description:
+            Variant allele frequency (AD/DP) cutoff for homozygous variants
+        con_het_vaf:
+          type: number
+          description:
+            Variant allele frequency (AD/DP) cutoff for heterozygous variants
+            in controls (e.g. if you require less evidence to accept and
+            exclude heterozygous variants identified in controls).
+        con_hom_vaf:
+          type: number
+          description:
+            Variant allele frequency (AD/DP) cutoff for homozygous variants
+            in controls (e.g. if you require less evidence to accept and
+            exclude homozygous variants identified in controls).
+        max_con_ref_vaf:
+          type: number
+          description:
+            Filter variants with a variant allele frequency (AD/DP) higher than
+            this value in control homozygous reference calls.
+        gq:
+          type: number
+          description: Genotype quality cutoff
+        dp:
+          type: integer
+          description:Minimum read depth for genotypes
+        csq:
+          type: string
+          description: VEP consequences to keep.
+      required:
+        - freq
+        - csq
+      recessive: *DEFAULT
+      de_novo: *DEFAULT
+      dominant: *DEFAULT
+      extra:
+        type: string
+        description:
+          extra arguments for vase family filtering
+required:
+- vcf
+- ped
+- filtering
