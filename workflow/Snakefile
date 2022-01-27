@@ -4,9 +4,8 @@ include: "rules/common.smk"
 rule all:
     input:
         "results/vase_filtered/vase_filtered.all.vcf.gz",
-        expand(
-                "results/report/vase_filtered.report.{ext}",
-                ext=['.xlsx', '.json']),
+        "results/report/vase_filtered.report.json",
+        "results/report/vase_filtered.report.xlsx",
 
 
 include: "rules/vase.smk"

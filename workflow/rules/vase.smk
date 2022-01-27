@@ -1,69 +1,50 @@
-import glob
+rule tabix_variants:
+    input:
+        config['vcf'],
+    output:
+        config['vcf'] + '.tbi',
+    log:
+        "logs/tabix/original.log",
+    conda:
+        "../envs/vase.yaml"
+    shell:
+        "tabix -fp vcf {input} 2> {log}"
 
 
-def get_vase_annot_params(wildcards):
-    args = "-g {} -d {}".format(config['gnomad'],
-                                get_variation_vcf())
-    if config.get("cadd_dir"):
-        args += " --cadd_dir {}".format(config.get("cadd_dir"))
-    if config.get("cadd_files"):
-        args += " --cadd_files {}".format(config.get("cadd_files"))
-    if config.get("splice_ai_files"):
-        args += " --splice_ai_vcfs {}".format(config.get("splice_ai_files"))
-    if config.get("splice_ai_dir"):
-        svcfs = glob.glob("{}/*.vcf.gz".format(config.get("splice_ai_dir")))
-        args += " --splice_ai_vcfs {}".format(" ".join(svcfs))
-    if config.get("cadd_files") or config.get("cadd_dir"):
-        args += " --missing_cadd_scores results/vase_annotated/missing_cadd_scores.{}.vcf.gz".format(wildcards.contig)
-    if config.get("splice_ai_files") or config.get("splice_ai_dir"):
-        args += " --missing_splice_ai_scores results/vase_annotated/missing_spliceai_scores.{}.vcf.gz".format(wildcards.contig)
-    if config.get("extra"):
-        args += " {}".format(config.get("extra"))
-    return args
-
-
-def get_vase_filter_params(wildcards):
-    args = '--ped {}'.format(config['ped'])
-    if wildcards.seg == 'recessive':
-        args += ' --recessive'
-    else:
-        args += ' --de_novo'
-    args += '--freq {}'.format(config['filtering']['freq'][wildcards.seg])
-    args += '--csq {}'.format(config['filtering']['csq'])
-    arg2flag = {'het_vaf': '--het_ab',
-                'hom_vaf': '--hom_ab',
-                'con_het_vaf': '-con_het_ab',
-                'con_hom_vaf': '-con_hom_ab',
-                'max_con_ref_vaf': '-con_ref_ab',
-                'gq': '--gq',
-                'dp': '--dp'}
-    for k, flag in arg2flag.items():
-        if k in config['filtering']:
-            args += ' {} {}'.format(flag, config['filtering'][k])
-    return args
+checkpoint write_contigs:
+    input:
+        config['vcf'],
+        config['vcf'] + '.tbi',
+    output:
+        "resources/contigs.txt",
+    log:
+        "logs/tabix/write_contigs.log",
+    conda:
+        "../envs/vase.yaml"
+    shell:
+        "tabix -l {input[0]} > {output} 2> {log}"
 
 
 rule tabix_annotated_variants:
     input:
-        config['vcf'],
+        "results/vase_annotated/vase_anno.vcf.gz",
     output:
-        "results/annotated/all.vcf.gz.tbi",
-        config['vcf'] + '.tbi',
+        "results/vase_annotated/vase_anno.vcf.gz.tbi",
     log:
-        "logs/tabix/variation.log",
-    params:
-        "-p vcf",
-    cache: True
-    wrapper:
-        "0.84.0/bio/tabix"
+        "logs/tabix/annotated.log",
+    conda:
+        "../envs/vase.yaml"
+    shell:
+        "tabix -fp vcf {input} 2> {log}"
 
 
 rule vase_annotate:
     input:
         vcf=config['vcf'],
         tbi=config['vcf'] + '.tbi',
+        contigs="resources/contigs.txt",
     output:
-        temp("results/vase_annotated/all.{contig}.vcf.gz")
+        temp("results/vase_annotated/vase_anno.{contig}.vcf.gz")
     params:
         get_vase_annot_params
     conda:
@@ -73,46 +54,77 @@ rule vase_annotate:
     resources:
         mem_mb=4096
     shell:
-        "bcftools view -O u {input.vcf} {wildcards.contig} | vase {params} -i - -o {output}"
+        "bcftools view -O u {input.vcf} {wildcards.contig} | vase {params} -i - -o {output} 2> {log}"
 
 
 rule vase_filter:
     input:
-        vcf="results/vase_annotated/all.vcf.gz",
+        vcf="results/vase_annotated/vase_anno.vcf.gz",
     output:
-        "results/vase_filtered/all.{seg}.vcf.gz",
+        vcf="results/vase_filtered/vase_filtered.{seg}.vcf.gz",
     params:
-        get_vase_annot_params
+        get_vase_filter_params
     conda:
         "../envs/vase.yaml"
     log:
-        "logs/gatk/vase_annot_{seg}.log"
+        "logs/vase/vase_filter_{seg}.log"
     shell:
-        "vase {params} -i {input.vcf} -o {output.vcf}"
+        "vase {params} -i {input.vcf} -o {output.vcf} 2> {log}"
 
 
 rule merge_annotated_variants:
     input:
         vcfs=lambda w: expand(
-            "results/vase_annotated/all.{contig}.vcf.gz", contig=get_contigs()
+            "results/vase_annotated/vase_anno.{contig}.vcf.gz",
+            contig=get_contigs()
         ),
     output:
-        vcf="results/vase_annotated/all.vcf.gz",
+        vcf="results/vase_annotated/vase_anno.vcf.gz",
     log:
-        "logs/picard/merge-vase_annotated.log",
+        "logs/picard/merge_vase_annotated.log",
     wrapper:
         "0.84.0/bio/picard/mergevcfs"
 
 
-rule merge_filtered_variants:
+if len(get_segregation_modes()) > 1:
+  rule merge_filtered_variants:
+      input:
+          vcfs=lambda w: expand(
+              "results/vase_filtered/vase_filtered.{seg}.vcf.gz",
+              seg=get_segregation_modes(),
+          ),
+      output:
+          vcf="results/vase_filtered/vase_filtered.all.vcf.gz",
+      log:
+          "logs/picard/merge_vase_filtered.log",
+      wrapper:
+          "0.84.0/bio/picard/mergevcfs"
+else:
+  rule rename_single_output:
+      input:
+          vcfs=lambda w: expand(
+              "results/vase_filtered/vase_filtered.{seg}.vcf.gz",
+              seg=get_segregation_modes(),
+          ),
+      output:
+          "results/vase_filtered/vase_filtered.all.vcf.gz"
+      log:
+          "logs/picard/merge_vase_filtered.log",
+      shell:
+        "mv {input} {output} 2> {log}"
+
+
+rule create_variant_report:
     input:
-        vcfs=lambda w: expand(
-            "results/vase_filtered/all.{seg}.vcf.gz",
-            seg=['recessive', 'de_novo', 'dominant']
-        ),
+        vcf="results/vase_filtered/vase_filtered.all.vcf.gz",
     output:
-        vcf="results/vase_filtered/all.vcf.gz",
+        "results/report/vase_filtered.report.{ext}"
+    conda:
+        "../envs/vase.yaml"
     log:
-        "logs/picard/merge-vase_fitlered.log",
-    wrapper:
-        "0.84.0/bio/picard/mergevcfs"
+        "logs/reporter/{ext}_report.log",
+    params:
+        get_reporter_args()
+    shell:
+        "vase_reporter {params} -o {wildcards.ext} {input} {output} 2> {log}"
+
