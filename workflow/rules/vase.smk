@@ -85,6 +85,8 @@ rule merge_annotated_variants:
         ),
     output:
         vcf="results/vase_annotated/vase_anno.vcf.gz",
+    resources:
+        mem_gb=get_mem_gb
     log:
         "logs/picard/merge_vase_annotated.log",
     wrapper:
@@ -92,31 +94,32 @@ rule merge_annotated_variants:
 
 
 if len(get_segregation_modes()) > 1:
-  rule merge_filtered_variants:
-      input:
-          vcfs=lambda w: expand(
-              "results/vase_filtered/vase_filtered.{seg}.vcf.gz",
-              seg=get_segregation_modes(),
-          ),
-      output:
-          vcf="results/vase_filtered/vase_filtered.all.vcf.gz",
-      log:
-          "logs/picard/merge_vase_filtered.log",
-      wrapper:
+    rule merge_filtered_variants:
+        input:
+            vcfs=lambda w: expand(
+                  "results/vase_filtered/vase_filtered.{seg}.vcf.gz",
+                seg=get_segregation_modes()),
+        output:
+            vcf="results/vase_filtered/vase_filtered.all.vcf.gz",
+        log:
+            "logs/picard/merge_vase_filtered.log",
+        resources:
+            mem_gb=get_mem_gb
+        wrapper:
           "0.84.0/bio/picard/mergevcfs"
 else:
-  rule rename_single_output:
-      input:
-          vcfs=lambda w: expand(
+    rule rename_single_output:
+        input:
+            vcfs=lambda w: expand(
               "results/vase_filtered/vase_filtered.{seg}.vcf.gz",
               seg=get_segregation_modes(),
           ),
-      output:
-          "results/vase_filtered/vase_filtered.all.vcf.gz"
-      log:
-          "logs/picard/merge_vase_filtered.log",
-      shell:
-        "mv {input} {output} 2> {log}"
+        output:
+            "results/vase_filtered/vase_filtered.all.vcf.gz"
+        log:
+            "logs/picard/merge_vase_filtered.log",
+        shell:
+            "mv {input} {output} 2> {log}"
 
 
 rule create_variant_report:

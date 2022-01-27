@@ -14,6 +14,10 @@ configfile: "config/config.yaml"
 validate(config, schema="../schemas/config.schema.yaml")
 
 
+def get_mem_gb(wildcards, attempt):
+    return attempt * 4
+
+
 def get_contigs():
     with checkpoints.write_contigs.get().output[0].open() as contigs:
         return pd.read_csv(contigs, usecols=[0], dtype=str, header=None,
