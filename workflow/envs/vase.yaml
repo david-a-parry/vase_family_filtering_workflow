@@ -1,0 +1,12 @@
+channels:
+  - bioconda
+  - conda-forge
+dependencies:
+  - bcftools
+  - tabix
+  - xlsxwriter
+  - requests
+  - biopython
+  - pip
+  - pip:
+    - git+git://github.com/david-a-parry/vase.git
