@@ -1,0 +1,12 @@
+include: "rules/common.smk"
+
+
+rule all:
+    input:
+        "results/vase_filtered/vase_filtered.all.vcf.gz",
+        expand(
+                "results/report/vase_filtered.report.{ext}",
+                ext=['.xlsx', '.json']),
+
+
+include: "rules/vase.smk"
