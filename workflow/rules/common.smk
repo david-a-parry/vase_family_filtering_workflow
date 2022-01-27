@@ -40,7 +40,7 @@ def get_vase_annot_params(wildcards):
         if config.get("cadd_files"):
             args += " --cadd_files {}".format(config.get("cadd_files"))
     if config.get("splice_ai_files") or config.get("splice_ai_dir"):
-        args += " --missing_splice_ai_scores results/vase_annotated/missing_spliceai_scores.{}.vcf.gz".format(wildcards.contig)
+        args += " --missing_splice_ai_scores results/vase_annotated/missing_splice_ai_scores.{}.vcf.gz".format(wildcards.contig)
         if config.get("splice_ai_files"):
             args += " --splice_ai_vcfs {}".format(config.get("splice_ai_files"))
         if config.get("splice_ai_dir"):

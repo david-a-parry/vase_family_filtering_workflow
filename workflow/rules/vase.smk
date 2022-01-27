@@ -44,7 +44,12 @@ rule vase_annotate:
         tbi=config['vcf'] + '.tbi',
         contigs="resources/contigs.txt",
     output:
-        temp("results/vase_annotated/vase_anno.{contig}.vcf.gz")
+        temp("results/vase_annotated/vase_anno.{contig}.vcf.gz"),
+        ("results/vase_annotated/missing_cadd_scores.{contig}.vcf.gz" if
+                config.get("cadd_files") or config.get("cadd_dir") else []),
+        ("results/vase_annotated/missing_splice_ai_scores.{contig}.vcf.gz"
+                if config.get("splice_ai_files") or config.get("splice_ai_dir")
+                else []),
     params:
         get_vase_annot_params
     conda:
@@ -54,7 +59,7 @@ rule vase_annotate:
     resources:
         mem_mb=4096
     shell:
-        "bcftools view -O u {input.vcf} {wildcards.contig} | vase {params} -i - -o {output} 2> {log}"
+        "bcftools view -O u {input.vcf} {wildcards.contig} | vase {params} -i - -o {output[0]} 2> {log}"
 
 
 rule vase_filter:
