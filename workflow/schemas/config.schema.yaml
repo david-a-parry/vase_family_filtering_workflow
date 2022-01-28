@@ -43,7 +43,8 @@ properties:
           freq:
             type: number
             description:
-              Allele frequency cutoff - filter variants more common than this according to dbSNP and gnomAD annotations
+              Allele frequency cutoff - filter variants more common than this
+              according to dbSNP and gnomAD annotations
           het_vaf:
             type: number
             description:
@@ -67,8 +68,8 @@ properties:
           max_con_ref_vaf:
             type: number
             description:
-              Filter variants with a variant allele frequency (AD/DP) higher than
-              this value in control homozygous reference calls.
+              Filter variants with a variant allele frequency (AD/DP) higher
+              than this value in control homozygous reference calls.
           gq:
             type: number
             description: Genotype quality cutoff
