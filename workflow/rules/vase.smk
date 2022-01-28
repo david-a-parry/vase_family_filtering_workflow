@@ -65,6 +65,7 @@ rule vase_annotate:
 rule vase_filter:
     input:
         vcf="results/vase_annotated/vase_anno.vcf.gz",
+        tbi="results/vase_annotated/vase_anno.vcf.gz.tbi",
     output:
         vcf="results/vase_filtered/vase_filtered.{seg}.vcf.gz",
     params:
