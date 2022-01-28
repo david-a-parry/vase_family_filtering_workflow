@@ -77,6 +77,8 @@ def get_vase_filter_params(wildcards):
     for k, flag in arg2flag.items():
         if k in config['filtering'][mode]:
             args += ' {} {}'.format(flag, config['filtering'][mode][k])
+    if config['filtering'][mode].get('extra'):
+        args += ' ' + config['filtering'][mode]['extra']
     return args
 
 
