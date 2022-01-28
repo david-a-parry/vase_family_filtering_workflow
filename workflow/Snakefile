@@ -1,6 +1,13 @@
 include: "rules/common.smk"
 
 
+filter_modes = get_segregation_modes()
+if not filter_modes:
+    raise ValueError("No filtering modes found in config file. At least one " +
+                     "of 'recessive', 'de_novo' or 'dominant' must be " +
+                     "specified in the 'filtering' section.")
+
+
 rule all:
     input:
         "results/report/vase_filtered.report.json",
