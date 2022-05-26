@@ -8,25 +8,48 @@ properties:
   type: object
   vcf:
     type: string
-    description: Variant input in VCF/BCF format.
+    description: >-
+      Variant input in VCF/BCF format. Must be annotated with Ensembl's Variant
+      Effect Predictor (VEP).
   ped:
     type: string
     description:
       PED file indicating familial relationships and affected status in vcf.
   dbsnp:
     type: string
+    description: >-
+      VCF file from dbSNP. Must be bgzip compressed and tabix indexed. This will
+      be used for allele frequency annotation and filtering.
   gnomad:
     type: string
+    description: >-
+      VCF file(s) from gnomAD. Must be bgzip compressed and tabix
+      indexed. This will be used for allele frequency annotation and filtering.
+      If using multiple VCFs (e.g. WES and WGS) enclose in quotes.
   cadd_files:
     type: string
+    description: >-
+      One or more files with pre-annotated CADD scores for annotating or
+      filtering on CADD scores. Files must be bgzip compressed and tabix
+      indexed.
   cadd_dir:
     type: string
-  splice_ai_dir:
-    type: string
+    description: >-
+      Directory containing files with pre-annotated CADD scores. Files in this
+      directory will be used for annotating or filtering on CADD scores. Files
+      must be bgzip compressed and tabix indexed.
   splice_ai_files:
     type: string
-  extra:
+    description: >-
+      One or more VCFs with pre-annotated SpliceAI scores. These VCFs will be
+      used for annotating or filtering on SpliceAI scores. Files must be bgzip
+      compressed and tabix indexed.
+  splice_ai_dir:
     type: string
+    description: >-
+      Directory containing VCFs with pre-annotated SpliceAI scores. Files in
+      this directory will be used for annotating or filtering on SpliceAI
+      scores. Files must be bgzip compressed and tabix indexed.
   annotating:
     type: object
     properties:
@@ -42,7 +65,7 @@ properties:
         properties:
           freq:
             type: number
-            description:
+            description: >-
               Allele frequency cutoff - filter variants more common than this
               according to dbSNP and gnomAD annotations
           het_vaf:
@@ -55,40 +78,52 @@ properties:
               Variant allele frequency (AD/DP) cutoff for homozygous variants
           con_het_vaf:
             type: number
-            description:
+            description: >-
               Variant allele frequency (AD/DP) cutoff for heterozygous variants
               in controls (e.g. if you require less evidence to accept and
               exclude heterozygous variants identified in controls).
           con_hom_vaf:
             type: number
-            description:
-              Variant allele frequency (AD/DP) cutoff for homozygous variants
-              in controls (e.g. if you require less evidence to accept and
-              exclude homozygous variants identified in controls).
+            description: >-
+              Variant allele frequency (AD/DP) cutoff for homozygous variants in
+              controls (e.g. if you require less evidence to accept and exclude
+              homozygous variants identified in controls).
           max_con_ref_vaf:
             type: number
-            description:
+            description: >-
               Filter variants with a variant allele frequency (AD/DP) higher
               than this value in control homozygous reference calls.
           gq:
             type: number
-            description: Genotype quality cutoff
+            description: >-
+              Genotype quality cutoff. Genotype calls with a GQ below this
+              value will be ignored.
           dp:
             type: integer
-            description: Minimum read depth for genotypes
+            description: >-
+              Minimum read depth for genotypes. Genotype calls with a depth (DP)
+              below this threshold will be ignored.
           csq:
             type: string
-            description: VEP consequences to keep.
+            description: >-
+              VEP consequences to keep. Can be specified as 'default' to keep
+              all non-synonymous and invariant splice site variants (i.e. HIGH
+              and MODERATE impact variants) or as 'all' to prevent any filtering
+              on consequence type. Otherwise any valid VEP consequence type can
+              be specified, ensuring to enclose in quotes if specifying
+              multiple. A list of valid consequence types can be found in the
+              'SO TERM' column at
+              https://www.ensembl.org/info/genome/variation/prediction/predicted_data.html
+          extra:
+            type: string
+            description:
+              extra arguments to pass to vase command.
       required:
         - freq
         - csq
       recessive: *DEFAULT
       de_novo: *DEFAULT
       dominant: *DEFAULT
-      extra:
-        type: string
-        description:
-          extra arguments for vase family filtering
   report:
     type: object
     properties:
